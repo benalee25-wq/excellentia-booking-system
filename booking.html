@@ -1,1 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Service — Excellentia Digital Solutions and More</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy-950:#0B1526;
+    --navy-900:#0F1E33;
+    --navy-800:#152A45;
+    --navy-700:#1D3A5C;
+    --line:#2A4363;
+    --ink:#F3F6FA;
+    --ink-muted:#9FB2C8;
+    --ink-faint:#6B8099;
+    --amber:#E6A94A;
+    --teal:#4FB8A8;
+    --rose:#D9738A;
+    --violet:#8C8FE0;
+    --danger:#E07868;
+    --radius-sm:10px;
+    --radius-md:16px;
+    --maxw:820px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--navy-950);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,.brand{font-family:'Sora',system-ui,sans-serif;}
+  a{color:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
 
+  header{
+    border-bottom:1px solid var(--line);
+    padding:18px 0;
+  }
+  .head-row{display:flex;align-items:center;justify-content:space-between;}
+  .brand{font-weight:700;font-size:0.98rem;}
+  .brand span{display:block;font-family:'Inter';font-weight:500;font-size:0.62rem;color:var(--ink-faint);margin-top:2px;}
+  .exit-link{font-size:0.85rem;color:var(--ink-muted);border:1px solid var(--line);padding:8px 14px;border-radius:999px;}
+  .exit-link:hover{color:var(--ink);border-color:var(--ink-muted);}
+
+  /* Progress */
+  .progress-wrap{padding:22px 0 0;}
+  .progress-track{height:4px;background:var(--navy-800);border-radius:999px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--amber);border-radius:999px;transition:width .25s ease;width:12.5%;}
+  .progress-label{display:flex;justify-content:space-between;margin-top:10px;font-size:0.78rem;color:var(--ink-faint);}
+  .progress-label b{color:var(--ink-muted);font-weight:600;}
+
+  main{padding:34px 0 80px;}
+  .step-head{margin-bottom:26px;}
+  .step-eyebrow{font-size:0.78rem;color:var(--amber);font-weight:600;letter-spacing:0.01em;}
+  .step-head h2{font-size:clamp(1.35rem,4vw,1.7rem);font-weight:700;margin-top:8px;letter-spacing:-0.01em;}
+  .step-head p{color:var(--ink-muted);margin-top:8px;font-size:0.92rem;}
+
+  /* Service picker */
+  .pick-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+  @media(min-width:600px){.pick-grid{grid-template-columns:1fr 1fr;}}
+  .pick-card{
+    background:var(--navy-800);border:1.5px solid var(--line);border-radius:var(--radius-md);
+    padding:18px;text-align:left;display:flex;align-items:center;gap:14px;color:var(--ink);
+  }
+  .pick-card:hover{border-color:var(--ink-faint);}
+  .pick-card.selected{border-color:var(--card-accent,var(--amber));background:var(--navy-700);}
+  .pick-icon{
+    width:38px;height:38px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    background:color-mix(in srgb, var(--card-accent,var(--amber)) 20%, transparent);
+    color:var(--card-accent,var(--amber));
+  }
+  .pick-icon svg{width:19px;height:19px;}
+  .pick-card .t{font-weight:600;font-size:0.92rem;}
+  .pick-card .s{font-size:0.78rem;color:var(--ink-faint);margin-top:2px;}
+  .load-msg{color:var(--ink-muted);font-size:0.9rem;padding:20px 0;}
+  .error-msg{color:var(--danger);font-size:0.9rem;padding:20px 0;}
+
+  /* Radio-style option list (service type) */
+  .opt-list{display:flex;flex-direction:column;gap:8px;}
+  .opt-row{
+    display:flex;align-items:center;gap:12px;background:var(--navy-800);
+    border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;
+  }
+  .opt-row.selected{border-color:var(--amber);background:var(--navy-700);}
+  .opt-row .ring{
+    width:18px;height:18px;border-radius:50%;border:2px solid var(--ink-faint);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .opt-row.selected .ring{border-color:var(--amber);}
+  .opt-row.selected .ring::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);}
+  .opt-row span{font-size:0.92rem;}
+
+  /* Form fields */
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:0.85rem;font-weight:600;margin-bottom:7px;}
+  .field .req{color:var(--danger);}
+  .field .hint{font-size:0.78rem;color:var(--ink-faint);margin-top:6px;}
+  .field input[type=text],
+  .field input[type=email],
+  .field input[type=tel],
+  .field input[type=date],
+  .field input[type=time],
+  .field input[type=number],
+  .field select,
+  .field textarea{
+    width:100%;background:var(--navy-800);border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 14px;color:var(--ink);font-size:0.92rem;
+  }
+  .field textarea{min-height:110px;resize:vertical;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--amber);}
+  .field-row{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:560px){.field-row{grid-template-columns:1fr 1fr;}}
+  .err-msg{color:var(--danger);font-size:0.78rem;margin-top:6px;display:none;}
+  .field.invalid input,.field.invalid select,.field.invalid textarea{border-color:var(--danger);}
+  .field.invalid .err-msg{display:block;}
+
+  /* Slots */
+  .slot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;}
+  @media(min-width:560px){.slot-grid{grid-template-columns:repeat(4,1fr);}}
+  .slot{
+    background:var(--navy-800);border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:10px 6px;text-align:center;font-size:0.85rem;color:var(--ink-muted);
+  }
+  .slot.taken{opacity:0.35;text-decoration:line-through;cursor:not-allowed;}
+  .slot.selected{border-color:var(--amber);color:var(--ink);background:var(--navy-700);}
+
+  /* File upload */
+  .drop-zone{
+    border:1.5px dashed var(--line);border-radius:var(--radius-md);padding:28px 16px;
+    text-align:center;color:var(--ink-muted);font-size:0.88rem;
+  }
+  .drop-zone b{color:var(--ink);}
+  .file-list{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .file-row{
+    display:flex;justify-content:space-between;align-items:center;background:var(--navy-800);
+    border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.85rem;
+  }
+  .file-row button{background:none;border:none;color:var(--ink-faint);font-size:0.8rem;}
+  .file-row button:hover{color:var(--danger);}
+
+  /* Payment options */
+  .pay-list{display:flex;flex-direction:column;gap:8px;}
+  .pay-row{
+    background:var(--navy-800);border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:14px 16px;
+  }
+  .pay-row.selected{border-color:var(--amber);}
+  .pay-row .top{display:flex;align-items:center;gap:12px;}
+  .pay-row .ring{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink-faint);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .pay-row.selected .ring{border-color:var(--amber);}
+  .pay-row.selected .ring::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);}
+  .pay-row .t{font-weight:600;font-size:0.9rem;}
+  .pay-row .d{font-size:0.8rem;color:var(--ink-faint);margin-top:3px;margin-left:30px;}
+
+  /* Summary */
+  .summary-card{background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-md);padding:22px;}
+  .sum-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:0.88rem;gap:16px;}
+  .sum-row:last-child{border-bottom:none;}
+  .sum-row .k{color:var(--ink-faint);flex-shrink:0;}
+  .sum-row .v{text-align:right;font-weight:500;}
+
+  /* Confirmation */
+  .confirm-box{text-align:center;padding:20px 0 8px;}
+  .check-badge{
+    width:60px;height:60px;border-radius:50%;background:color-mix(in srgb, var(--teal) 20%, transparent);
+    color:var(--teal);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+  }
+  .check-badge svg{width:28px;height:28px;}
+  .booking-id{
+    font-family:'Sora';font-weight:700;font-size:1.3rem;letter-spacing:0.02em;color:var(--amber);
+    margin:6px 0 22px;
+  }
+  .status-pill{
+    display:inline-block;background:var(--navy-700);border:1px solid var(--line);
+    padding:5px 14px;border-radius:999px;font-size:0.78rem;color:var(--ink-muted);
+  }
+
+  /* Nav buttons */
+  .step-nav{display:flex;justify-content:space-between;gap:12px;margin-top:32px;}
+  .btn-primary{
+    background:var(--amber);color:var(--navy-950);font-weight:600;padding:13px 24px;
+    border-radius:999px;border:none;font-size:0.92rem;
+  }
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{
+    background:transparent;color:var(--ink-muted);font-weight:600;padding:13px 20px;
+    border-radius:999px;border:1px solid var(--line);font-size:0.92rem;
+  }
+  .btn-ghost:hover{color:var(--ink);border-color:var(--ink-faint);}
+  .btn-full{width:100%;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head-row">
+    <a href="#" class="brand">EXCELLENTIA <span>DIGITAL SOLUTIONS AND MORE</span></a>
+    <a href="index.html" class="exit-link">Exit</a>
+  </div>
+</header>
+
+<div class="wrap progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label"><b id="stepLabel">Step 1 of 8</b><span id="stepName">Select Service</span></div>
+</div>
+
+<main class="wrap">
+  <div id="stepArea"></div>
+</main>
+
+<script>
+/* ---------- Supabase connection ---------- */
+const SUPABASE_URL = "https://ffapogcwklcjadsepqaq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_OTZkjIi_TNvigEIVZINdow_EtL2Tdc3";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* Icons kept locally (not worth storing SVG paths in the DB) */
+const ICONS = {
+  classes: '<path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/>',
+  data: '<path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 5-8"/>',
+  web: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/>',
+  dash: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  research: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/>',
+  fumigation: '<path d="M12 2v6M8 5l1.5 3M16 5l-1.5 3"/><path d="M4 13c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M4 19c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/>',
+  design: '<circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-3-2h-2a3 3 0 0 1-3-3c0-1 1-2 1-3a2 2 0 0 0-2-2Z"/>'
+};
+
+/* ---------- Data (loaded live from Supabase) ---------- */
+let SERVICES = [];
+let servicesLoading = true;
+let servicesError = null;
+
+async function loadServices(){
+  const { data, error } = await sb
+    .from('services')
+    .select('id, name, accent_color, types, specialized_form')
+    .eq('active', true)
+    .order('name');
+
+  if(error){
+    servicesError = error.message;
+  } else {
+    SERVICES = data.map(s => ({
+      id: s.id,
+      name: s.name,
+      accent: s.accent_color,
+      icon: ICONS[s.id] || '<circle cx="12" cy="12" r="9"/>',
+      types: s.types,
+      specialized: s.specialized_form
+    }));
+  }
+  servicesLoading = false;
+  render();
+}
+
+const TIME_SLOTS = ["9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM"];
+const TAKEN_SLOTS = ["11:00 AM","2:00 PM"]; // demo-only, simulates already-booked slots
+
+/* ---------- State ---------- */
+const state = {
+  step: 1,
+  service: null,
+  serviceType: null,
+  date: "",
+  time: "",
+  customer: { name:"", phone:"", email:"", address:"", contactPref:"Phone", notes:"" },
+  details: { description:"", instructions:"", dueDate:"", specialized:{} },
+  files: [],
+  payment: null
+};
+
+const STEP_NAMES = ["Select Service","Service Type","Date & Time","Your Information","Service Details","Files","Payment","Confirm"];
+const TOTAL_STEPS = 8;
+
+/* ---------- Render router ---------- */
+function render(){
+  document.getElementById('progressFill').style.width = (state.step/TOTAL_STEPS*100) + '%';
+  document.getElementById('stepLabel').textContent = `Step ${state.step} of ${TOTAL_STEPS}`;
+  document.getElementById('stepName').textContent = STEP_NAMES[state.step-1];
+  const area = document.getElementById('stepArea');
+  area.innerHTML = '';
+  const renderers = [r1,r2,r3,r4,r5,r6,r7,r8];
+  renderers[state.step-1](area);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function head(container, eyebrow, title, sub){
+  const h = document.createElement('div');
+  h.className='step-head';
+  h.innerHTML = `<div class="step-eyebrow">${eyebrow}</div><h2>${title}</h2>${sub?`<p>${sub}</p>`:''}`;
+  container.appendChild(h);
+}
+
+function nav(container, {backFn, nextFn, nextLabel='Continue', showBack=true}){
+  const n = document.createElement('div');
+  n.className='step-nav';
+  n.innerHTML = `
+    ${showBack ? '<button class="btn-ghost" id="backBtn">Back</button>' : '<span></span>'}
+    <button class="btn-primary" id="nextBtn">${nextLabel}</button>
+  `;
+  container.appendChild(n);
+  if(showBack) document.getElementById('backBtn').addEventListener('click', backFn);
+  document.getElementById('nextBtn').addEventListener('click', nextFn);
+}
+
+/* ---------- Step 1: Select Service ---------- */
+function r1(c){
+  head(c, "Step 1", "What do you need help with?", "Choose a service category to get started.");
+
+  if(servicesLoading){
+    c.innerHTML += `<div class="load-msg">Loading services…</div>`;
+    return;
+  }
+  if(servicesError){
+    c.innerHTML += `<div class="error-msg">Couldn't load services: ${servicesError}</div>`;
+    return;
+  }
+
+  const grid = document.createElement('div'); grid.className='pick-grid';
+  SERVICES.forEach(s=>{
+    const card = document.createElement('button');
+    card.className = 'pick-card' + (state.service===s.id ? ' selected':'');
+    card.style.setProperty('--card-accent', s.accent);
+    card.innerHTML = `
+      <div class="pick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${s.icon}</svg></div>
+      <div><div class="t">${s.name}</div><div class="s">${s.types.length} options</div></div>
+    `;
+    card.addEventListener('click', ()=>{ state.service=s.id; state.serviceType=null; render(); });
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
+  nav(c, {
+    showBack:false,
+    nextFn:()=>{ if(!state.service){ alert('Please select a service to continue.'); return; } state.step=2; render(); }
+  });
+}
+
+/* ---------- Step 2: Service Type ---------- */
+function r2(c){
+  const svc = SERVICES.find(s=>s.id===state.service);
+  head(c, "Step 2", `Choose a ${svc.name.toLowerCase()} option`);
+  const list = document.createElement('div'); list.className='opt-list';
+  svc.types.forEach(t=>{
+    const row = document.createElement('div');
+    row.className='opt-row' + (state.serviceType===t ? ' selected':'');
+    row.innerHTML = `<span class="ring"></span><span>${t}</span>`;
+    row.addEventListener('click', ()=>{ state.serviceType=t; render(); });
+    list.appendChild(row);
+  });
+  c.appendChild(list);
+  nav(c, {
+    backFn:()=>{ state.step=1; render(); },
+    nextFn:()=>{ if(!state.serviceType){ alert('Please choose an option to continue.'); return; } state.step=3; render(); }
+  });
+}
+
+/* ---------- Step 3: Date & Time ---------- */
+function r3(c){
+  head(c, "Step 3", "Pick a date and time", "Unavailable slots are already booked and can't be selected.");
+  const dateField = document.createElement('div'); dateField.className='field';
+  const today = new Date().toISOString().split('T')[0];
+  dateField.innerHTML = `<label>Preferred date <span class="req">*</span></label>
+    <input type="date" id="dateInput" min="${today}" value="${state.date}">`;
+  c.appendChild(dateField);
+
+  const timeLabel = document.createElement('label');
+  timeLabel.textContent = 'Available time slots';
+  timeLabel.style.cssText='display:block;font-size:0.85rem;font-weight:600;margin-bottom:7px;';
+  c.appendChild(timeLabel);
+
+  const grid = document.createElement('div'); grid.className='slot-grid';
+  TIME_SLOTS.forEach(t=>{
+    const taken = TAKEN_SLOTS.includes(t);
+    const slot = document.createElement('button');
+    slot.className = 'slot' + (taken?' taken':'') + (state.time===t?' selected':'');
+    slot.textContent = t;
+    slot.disabled = taken;
+    slot.addEventListener('click', ()=>{ state.time=t; render(); });
+    grid.appendChild(slot);
+  });
+  c.appendChild(grid);
+
+  nav(c, {
+    backFn:()=>{ state.step=2; render(); },
+    nextFn:()=>{
+      state.date = document.getElementById('dateInput').value;
+      if(!state.date){ alert('Please select a date.'); return; }
+      if(!state.time){ alert('Please select a time slot.'); return; }
+      state.step=4; render();
+    }
+  });
+}
+
+/* ---------- Step 4: Customer Information ---------- */
+function r4(c){
+  head(c, "Step 4", "Your information", "So we know who to reach and how.");
+  const f = state.customer;
+  c.innerHTML += `
+    <div class="field"><label>Full name <span class="req">*</span></label>
+      <input type="text" id="cName" value="${f.name}"></div>
+    <div class="field-row">
+      <div class="field"><label>Phone number <span class="req">*</span></label>
+        <input type="tel" id="cPhone" value="${f.phone}"></div>
+      <div class="field"><label>Email address <span class="req">*</span></label>
+        <input type="email" id="cEmail" value="${f.email}"></div>
+    </div>
+    <div class="field"><label>Address <span class="hint" style="display:inline;margin:0;">(where applicable)</span></label>
+      <input type="text" id="cAddress" value="${f.address}"></div>
+    <div class="field"><label>Preferred communication method</label>
+      <select id="cContactPref">
+        <option ${f.contactPref==='Phone'?'selected':''}>Phone</option>
+        <option ${f.contactPref==='Email'?'selected':''}>Email</option>
+        <option ${f.contactPref==='WhatsApp'?'selected':''}>WhatsApp</option>
+      </select></div>
+    <div class="field"><label>Additional information</label>
+      <textarea id="cNotes">${f.notes}</textarea></div>
+  `;
+  nav(c, {
+    backFn:()=>{ state.step=3; render(); },
+    nextFn:()=>{
+      f.name = document.getElementById('cName').value.trim();
+      f.phone = document.getElementById('cPhone').value.trim();
+      f.email = document.getElementById('cEmail').value.trim();
+      f.address = document.getElementById('cAddress').value.trim();
+      f.contactPref = document.getElementById('cContactPref').value;
+      f.notes = document.getElementById('cNotes').value.trim();
+      if(!f.name || !f.phone || !f.email){ alert('Name, phone, and email are required.'); return; }
+      state.step=5; render();
+    }
+  });
+}
+
+/* ---------- Step 5: Service Details (with specialized fields) ---------- */
+function r5(c){
+  const svc = SERVICES.find(s=>s.id===state.service);
+  head(c, "Step 5", "Tell us what you need", "The more detail, the smoother delivery will be.");
+  const d = state.details;
+  let specializedHTML = '';
+
+  if(svc.specialized==='design'){
+    specializedHTML = `
+      <div class="field"><label>Business / brand name</label><input type="text" id="spBrand" value="${d.specialized.brand||''}"></div>
+      <div class="field"><label>Preferred design style</label><input type="text" id="spStyle" placeholder="e.g. minimalist, bold, colorful" value="${d.specialized.style||''}"></div>`;
+  } else if(svc.specialized==='fumigation'){
+    specializedHTML = `
+      <div class="field-row">
+        <div class="field"><label>Property type</label><input type="text" id="spPropType" placeholder="e.g. bungalow, office" value="${d.specialized.propType||''}"></div>
+        <div class="field"><label>Number of rooms / areas</label><input type="number" id="spRooms" min="1" value="${d.specialized.rooms||''}"></div>
+      </div>
+      <div class="field"><label>Property location</label><input type="text" id="spLocation" value="${d.specialized.location||''}"></div>`;
+  } else if(svc.specialized==='web'){
+    specializedHTML = `
+      <div class="field-row">
+        <div class="field"><label>Number of pages</label><input type="number" id="spPages" min="1" value="${d.specialized.pages||''}"></div>
+        <div class="field"><label>Existing website URL <span class="hint" style="display:inline;margin:0;">(if any)</span></label><input type="text" id="spUrl" value="${d.specialized.url||''}"></div>
+      </div>
+      <div class="field"><label>Required features</label><input type="text" id="spFeatures" placeholder="e.g. booking form, gallery, blog" value="${d.specialized.features||''}"></div>`;
+  } else if(svc.specialized==='data'){
+    specializedHTML = `
+      <div class="field-row">
+        <div class="field"><label>Type of dataset</label><input type="text" id="spDataset" value="${d.specialized.dataset||''}"></div>
+        <div class="field"><label>Desired output</label><input type="text" id="spOutput" placeholder="e.g. chart, report, dashboard" value="${d.specialized.output||''}"></div>
+      </div>`;
+  }
+
+  c.innerHTML += `
+    <div class="field"><label>Project / service description <span class="req">*</span></label>
+      <textarea id="dDesc">${d.description}</textarea></div>
+    ${specializedHTML}
+    <div class="field"><label>Special instructions</label>
+      <textarea id="dInstr">${d.instructions}</textarea></div>
+    <div class="field"><label>Preferred completion date</label>
+      <input type="date" id="dDue" value="${d.dueDate}"></div>
+  `;
+
+  nav(c, {
+    backFn:()=>{ state.step=4; render(); },
+    nextFn:()=>{
+      d.description = document.getElementById('dDesc').value.trim();
+      if(!d.description){ alert('Please describe what you need.'); return; }
+      d.instructions = document.getElementById('dInstr').value.trim();
+      d.dueDate = document.getElementById('dDue').value;
+      if(svc.specialized==='design'){ d.specialized = { brand: sv('spBrand'), style: sv('spStyle') }; }
+      else if(svc.specialized==='fumigation'){ d.specialized = { propType: sv('spPropType'), rooms: sv('spRooms'), location: sv('spLocation') }; }
+      else if(svc.specialized==='web'){ d.specialized = { pages: sv('spPages'), url: sv('spUrl'), features: sv('spFeatures') }; }
+      else if(svc.specialized==='data'){ d.specialized = { dataset: sv('spDataset'), output: sv('spOutput') }; }
+      state.step=6; render();
+    }
+  });
+}
+function sv(id){ const el=document.getElementById(id); return el?el.value.trim():''; }
+
+/* ---------- Step 6: File Upload ---------- */
+function r6(c){
+  head(c, "Step 6", "Upload files", "Optional — logos, reference images, documents, or data files. Max 10MB each.");
+  const dz = document.createElement('div'); dz.className='drop-zone';
+  dz.innerHTML = `<b>Tap to choose files</b><br>or drag and drop here`;
+  dz.style.cursor='pointer';
+  const input = document.createElement('input');
+  input.type='file'; input.multiple=true; input.style.display='none';
+  dz.addEventListener('click', ()=>input.click());
+  input.addEventListener('change', e=>{
+    Array.from(e.target.files).forEach(file=>{
+      if(file.size > 10*1024*1024){ alert(`${file.name} is over 10MB and was skipped.`); return; }
+      state.files.push({name:file.name, size:file.size});
+    });
+    renderFileList();
+  });
+  c.appendChild(dz); c.appendChild(input);
+
+  const listWrap = document.createElement('div'); listWrap.className='file-list'; listWrap.id='fileList';
+  c.appendChild(listWrap);
+  function renderFileList(){
+    listWrap.innerHTML = state.files.map((f,i)=>`
+      <div class="file-row"><span>${f.name} <span style="color:var(--ink-faint)">(${(f.size/1024).toFixed(0)} KB)</span></span>
+      <button data-i="${i}">Remove</button></div>`).join('');
+    listWrap.querySelectorAll('button').forEach(b=>b.addEventListener('click', e=>{
+      state.files.splice(Number(e.target.dataset.i),1); renderFileList();
+    }));
+  }
+  renderFileList();
+
+  nav(c, {
+    backFn:()=>{ state.step=5; render(); },
+    nextFn:()=>{ state.step=7; render(); }
+  });
+}
+
+/* ---------- Step 7: Payment Option ---------- */
+function r7(c){
+  head(c, "Step 7", "Payment option", "Choose how you'd like to handle payment for this booking.");
+  const options = [
+    {id:'none', t:'No payment required', d:'For consultations or services billed separately.'},
+    {id:'full', t:'Full payment now', d:'Pay the full amount to confirm your booking.'},
+    {id:'deposit', t:'Deposit', d:'Pay a deposit now, balance on completion.'},
+    {id:'after', t:'Pay after service approval', d:'We confirm scope first, payment follows.'}
+  ];
+  const list = document.createElement('div'); list.className='pay-list';
+  options.forEach(o=>{
+    const row = document.createElement('div');
+    row.className='pay-row'+(state.payment===o.id?' selected':'');
+    row.innerHTML = `<div class="top"><span class="ring"></span><span class="t">${o.t}</span></div><div class="d">${o.d}</div>`;
+    row.addEventListener('click', ()=>{ state.payment=o.id; render(); });
+    list.appendChild(row);
+  });
+  c.appendChild(list);
+  nav(c, {
+    backFn:()=>{ state.step=6; render(); },
+    nextFn:()=>{ if(!state.payment){ alert('Please choose a payment option.'); return; } state.step=8; render(); }
+  });
+}
+
+/* ---------- Step 8: Confirm / Summary or Success ---------- */
+let submitted = false;
+let bookingId = '';
+
+function r8(c){
+  if(!submitted){
+    const svc = SERVICES.find(s=>s.id===state.service);
+    head(c, "Step 8", "Review your booking", "Check everything looks right before you confirm.");
+    const card = document.createElement('div'); card.className='summary-card';
+    const payLabels = {none:'No payment required', full:'Full payment', deposit:'Deposit', after:'Pay after approval'};
+    card.innerHTML = `
+      ${row('Service', svc.name)}
+      ${row('Service type', state.serviceType)}
+      ${row('Date', state.date)}
+      ${row('Time', state.time)}
+      ${row('Name', state.customer.name)}
+      ${row('Phone', state.customer.phone)}
+      ${row('Email', state.customer.email)}
+      ${row('Description', state.details.description)}
+      ${row('Files attached', state.files.length ? state.files.length + ' file(s)' : 'None')}
+      ${row('Payment', payLabels[state.payment])}
+    `;
+    c.appendChild(card);
+    nav(c, {
+      backFn:()=>{ state.step=7; render(); },
+      nextLabel:'Confirm Booking',
+      nextFn: submitBooking
+    });
+  } else {
+    head(c, "Booking submitted", "");
+    const box = document.createElement('div'); box.className='confirm-box';
+    box.innerHTML = `
+      <div class="check-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h2 style="font-size:1.3rem;">Booking confirmed</h2>
+      <div class="booking-id">${bookingId}</div>
+      <p style="color:var(--ink-muted);font-size:0.9rem;max-width:40ch;margin:0 auto 18px;">
+        We've received your request for <b style="color:var(--ink)">${state.serviceType}</b> on
+        <b style="color:var(--ink)">${state.date} at ${state.time}</b>. A confirmation will be sent to ${state.customer.email}.
+      </p>
+      <span class="status-pill">Status: Pending</span>
+    `;
+    c.appendChild(box);
+    const n = document.createElement('div'); n.className='step-nav';
+    n.innerHTML = `
+      <button class="btn-ghost" id="printBtn">Download / Print</button>
+      <button class="btn-primary" id="newBtn">New Booking</button>
+    `;
+    c.appendChild(n);
+    document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+    document.getElementById('newBtn').addEventListener('click', ()=>{
+      Object.assign(state, {step:1, service:null, serviceType:null, date:'', time:'', payment:null, files:[]});
+      state.customer = { name:"", phone:"", email:"", address:"", contactPref:"Phone", notes:"" };
+      state.details = { description:"", instructions:"", dueDate:"", specialized:{} };
+      submitted = false;
+      render();
+    });
+  }
+}
+function row(k,v){ return `<div class="sum-row"><span class="k">${k}</span><span class="v">${v||'—'}</span></div>`; }
+
+async function submitBooking(){
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = true;
+  nextBtn.textContent = 'Submitting…';
+
+  const svc = SERVICES.find(s=>s.id===state.service);
+  const ref = 'EXC-' + new Date().getFullYear() + '-' + String(Math.floor(10000+Math.random()*90000)).slice(0,5);
+
+  const payload = {
+    booking_ref: ref,
+    service_id: state.service,
+    service_name: svc.name,
+    service_type: state.serviceType,
+    booking_date: state.date,
+    booking_time: state.time,
+    customer_name: state.customer.name,
+    customer_phone: state.customer.phone,
+    customer_email: state.customer.email,
+    customer_address: state.customer.address || null,
+    contact_preference: state.customer.contactPref,
+    description: state.details.description,
+    special_instructions: state.details.instructions || null,
+    preferred_completion_date: state.details.dueDate || null,
+    specialized_fields: state.details.specialized || {},
+    payment_option: state.payment,
+    status: 'Pending'
+  };
+
+  const { data, error } = await sb.from('bookings').insert(payload).select().single();
+
+  if(error){
+    nextBtn.disabled = false;
+    nextBtn.textContent = 'Confirm Booking';
+    alert('Something went wrong submitting your booking: ' + error.message);
+    return;
+  }
+
+  bookingId = data.booking_ref;
+  submitted = true;
+  render();
+}
+
+loadServices();
+render();
+</script>
+</body>
+</html>
