@@ -646,7 +646,7 @@ async function submitBooking(){
     status: 'Pending'
   };
 
-  const { data, error } = await sb.from('bookings').insert(payload).select().single();
+  const { error } = await sb.from('bookings').insert(payload);
 
   if(error){
     nextBtn.disabled = false;
@@ -655,7 +655,7 @@ async function submitBooking(){
     return;
   }
 
-  bookingId = data.booking_ref;
+  bookingId = ref;
   submitted = true;
   render();
 }
