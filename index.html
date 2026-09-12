@@ -215,7 +215,7 @@
       <a href="#contact">Contact</a>
     </nav>
     <div style="display:flex;align-items:center;gap:10px;">
-      <a href="#book" class="cta-btn">Book a Service</a>
+      <a href="booking.html" class="cta-btn">Book a Service</a>
       <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
@@ -238,7 +238,7 @@
       <h1>Professional digital solutions. Simple booking. Exceptional service.</h1>
       <p class="lead">Book the professional service you need, choose a convenient schedule, and let Excellentia Digital Solutions and More handle the rest — from a logo to a full class dashboard.</p>
       <div class="hero-actions">
-        <a href="#book" class="btn-primary">Book a Service</a>
+        <a href="booking.html" class="btn-primary">Book a Service</a>
         <a href="#services" class="btn-secondary">Explore Services</a>
       </div>
       <div class="hero-stats">
@@ -331,7 +331,7 @@
       <div style="background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-md);padding:28px;">
         <h3 style="font-size:1.05rem;font-weight:600;margin-bottom:8px;">Ready to book?</h3>
         <p style="color:var(--ink-muted);font-size:0.9rem;margin-bottom:20px;">The full booking flow (service, schedule, details, confirmation) is the next piece we'll build.</p>
-        <a href="#top" id="book" class="btn-primary" style="display:inline-block;">Start a Booking</a>
+        <a href="booking.html" id="book" class="btn-primary" style="display:inline-block;">Start a Booking</a>
       </div>
     </div>
   </section>
@@ -410,7 +410,7 @@
       <ul>${s.items.map(i => `<li>${i}</li>`).join('')}</ul>
       <span class="svc-link">Book this service</span>
     `;
-    card.addEventListener('click', () => { window.location.hash = 'book'; });
+    card.addEventListener('click', () => { window.location.href = 'booking.html'; });
     grid.appendChild(card);
   });
 
