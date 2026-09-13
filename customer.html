@@ -1,1 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account — Excellentia Digital Solutions and More</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy-950:#0B1526;
+    --navy-900:#0F1E33;
+    --navy-800:#152A45;
+    --navy-700:#1D3A5C;
+    --line:#2A4363;
+    --ink:#F3F6FA;
+    --ink-muted:#9FB2C8;
+    --ink-faint:#6B8099;
+    --amber:#E6A94A;
+    --teal:#4FB8A8;
+    --rose:#D9738A;
+    --violet:#8C8FE0;
+    --danger:#E07868;
+    --radius-sm:10px;
+    --radius-md:16px;
+    --maxw:720px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--navy-950);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,.brand{font-family:'Sora',system-ui,sans-serif;}
+  a{color:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 18px;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
 
+  header{border-bottom:1px solid var(--line);padding:16px 0;}
+  .head-row{display:flex;align-items:center;justify-content:space-between;}
+  .brand{font-weight:700;font-size:0.95rem;}
+  .brand span{display:block;font-family:'Inter';font-weight:500;font-size:0.6rem;color:var(--ink-faint);margin-top:2px;}
+  .pill-btn{
+    font-size:0.82rem;color:var(--ink-muted);border:1px solid var(--line);
+    padding:8px 14px;border-radius:999px;background:none;
+  }
+  .pill-btn:hover{color:var(--ink);border-color:var(--ink-faint);}
+
+  /* ===== Auth screen ===== */
+  .auth-shell{min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;padding:24px 18px;}
+  .auth-card{
+    width:100%;max-width:380px;background:var(--navy-800);border:1px solid var(--line);
+    border-radius:var(--radius-md);padding:32px 26px;
+  }
+  .tab-row{display:flex;gap:6px;background:var(--navy-900);border-radius:999px;padding:4px;margin-bottom:24px;}
+  .tab-btn{
+    flex:1;text-align:center;padding:9px 0;border-radius:999px;border:none;background:none;
+    color:var(--ink-muted);font-size:0.85rem;font-weight:600;
+  }
+  .tab-btn.active{background:var(--amber);color:var(--navy-950);}
+  .auth-card h2{font-size:1.25rem;font-weight:700;margin-bottom:6px;}
+  .auth-card p.sub{color:var(--ink-muted);font-size:0.86rem;margin-bottom:22px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:0.83rem;font-weight:600;margin-bottom:7px;}
+  .field input{
+    width:100%;background:var(--navy-900);border:1.5px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 14px;color:var(--ink);font-size:0.92rem;
+  }
+  .field input:focus{outline:none;border-color:var(--amber);}
+  .auth-err{color:var(--danger);font-size:0.83rem;margin-bottom:14px;display:none;}
+  .auth-ok{color:var(--teal);font-size:0.83rem;margin-bottom:14px;display:none;}
+  .btn-primary{
+    background:var(--amber);color:var(--navy-950);font-weight:600;padding:13px 20px;
+    border-radius:999px;border:none;font-size:0.92rem;width:100%;
+  }
+  .btn-primary:disabled{opacity:0.6;}
+
+  /* ===== Dashboard ===== */
+  main{padding:28px 0 60px;display:none;}
+  .page-title{font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+  .page-sub{color:var(--ink-muted);font-size:0.88rem;margin-bottom:26px;}
+
+  .booking-list{display:flex;flex-direction:column;gap:10px;}
+  .booking-card{background:var(--navy-800);border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 18px;}
+  .bk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .bk-ref{font-family:'Sora';font-weight:700;font-size:0.85rem;color:var(--amber);}
+  .bk-service{font-weight:600;font-size:0.95rem;margin-top:4px;}
+  .bk-meta{color:var(--ink-muted);font-size:0.82rem;margin-top:3px;}
+  .status-badge{font-size:0.72rem;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap;}
+  .status-Pending{background:rgba(230,169,74,0.18);color:var(--amber);}
+  .status-Confirmed{background:rgba(79,184,168,0.18);color:var(--teal);}
+  .status-In_Progress{background:rgba(140,143,224,0.18);color:var(--violet);}
+  .status-Completed{background:rgba(79,184,168,0.28);color:var(--teal);}
+  .status-Cancelled{background:rgba(224,120,104,0.18);color:var(--danger);}
+  .status-Rescheduled{background:rgba(217,115,138,0.18);color:var(--rose);}
+
+  .empty-state{color:var(--ink-faint);font-size:0.9rem;padding:40px 0;text-align:center;}
+  .cta-row{margin-top:24px;text-align:center;}
+  .cta-row a{color:var(--amber);font-size:0.88rem;font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head-row">
+    <a href="index.html" class="brand">EXCELLENTIA <span>MY ACCOUNT</span></a>
+    <div id="headActions"></div>
+  </div>
+</header>
+
+<!-- AUTH -->
+<div class="auth-shell" id="authShell">
+  <div class="auth-card">
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabSignIn">Sign In</button>
+      <button class="tab-btn" id="tabSignUp">Create Account</button>
+    </div>
+
+    <div id="signInForm">
+      <h2>Welcome back</h2>
+      <p class="sub">Sign in to view your bookings.</p>
+      <div class="auth-err" id="signInErr"></div>
+      <div class="field"><label>Email</label><input type="email" id="siEmail" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="siPass" autocomplete="current-password"></div>
+      <button class="btn-primary" id="signInBtn">Sign In</button>
+    </div>
+
+    <div id="signUpForm" style="display:none;">
+      <h2>Create your account</h2>
+      <p class="sub">Track your bookings and history in one place.</p>
+      <div class="auth-err" id="signUpErr"></div>
+      <div class="auth-ok" id="signUpOk"></div>
+      <div class="field"><label>Full name</label><input type="text" id="suName"></div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input type="password" id="suPass" autocomplete="new-password"></div>
+      <button class="btn-primary" id="signUpBtn">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<main class="wrap" id="dashboard">
+  <div class="page-title">My Bookings</div>
+  <div class="page-sub" id="pageSub">Loading…</div>
+  <div class="booking-list" id="bookingList"></div>
+  <div class="cta-row"><a href="booking.html">+ Book another service</a></div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://ffapogcwklcjadsepqaq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_OTZkjIi_TNvigEIVZINdow_EtL2Tdc3";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ---------- Tabs ---------- */
+document.getElementById('tabSignIn').addEventListener('click', ()=>{
+  document.getElementById('tabSignIn').classList.add('active');
+  document.getElementById('tabSignUp').classList.remove('active');
+  document.getElementById('signInForm').style.display = 'block';
+  document.getElementById('signUpForm').style.display = 'none';
+});
+document.getElementById('tabSignUp').addEventListener('click', ()=>{
+  document.getElementById('tabSignUp').classList.add('active');
+  document.getElementById('tabSignIn').classList.remove('active');
+  document.getElementById('signUpForm').style.display = 'block';
+  document.getElementById('signInForm').style.display = 'none';
+});
+
+/* ---------- Sign in ---------- */
+document.getElementById('signInBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('siEmail').value.trim();
+  const pass = document.getElementById('siPass').value;
+  const errBox = document.getElementById('signInErr');
+  errBox.style.display = 'none';
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+  if(error){
+    errBox.textContent = error.message;
+    errBox.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign In';
+    return;
+  }
+  enterDashboard();
+});
+
+/* ---------- Sign up ---------- */
+document.getElementById('signUpBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('suName').value.trim();
+  const email = document.getElementById('suEmail').value.trim();
+  const pass = document.getElementById('suPass').value;
+  const errBox = document.getElementById('signUpErr');
+  const okBox = document.getElementById('signUpOk');
+  errBox.style.display = 'none'; okBox.style.display = 'none';
+
+  if(!name || !email || !pass){
+    errBox.textContent = 'Please fill in all fields.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('signUpBtn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  const { data, error } = await sb.auth.signUp({
+    email, password: pass,
+    options: { data: { full_name: name } }
+  });
+
+  btn.disabled = false; btn.textContent = 'Create Account';
+
+  if(error){
+    errBox.textContent = error.message;
+    errBox.style.display = 'block';
+    return;
+  }
+
+  // If email confirmation is off, there's already a session — go straight in.
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){
+    enterDashboard();
+  } else {
+    okBox.textContent = 'Account created — check your email to confirm, then sign in.';
+    okBox.style.display = 'block';
+  }
+});
+
+/* ---------- Dashboard ---------- */
+async function enterDashboard(){
+  document.getElementById('authShell').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('headActions').innerHTML = `<button class="pill-btn" id="signOutBtn">Sign Out</button>`;
+  document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+    await sb.auth.signOut();
+    location.reload();
+  });
+  loadMyBookings();
+}
+
+async function loadMyBookings(){
+  document.getElementById('pageSub').textContent = 'Loading…';
+  const { data, error } = await sb
+    .from('bookings')
+    .select('*')
+    .order('created_at', { ascending:false });
+
+  const list = document.getElementById('bookingList');
+
+  if(error){
+    document.getElementById('pageSub').textContent = 'Could not load bookings: ' + error.message;
+    return;
+  }
+
+  if(data.length === 0){
+    document.getElementById('pageSub').textContent = "You haven't made any bookings yet.";
+    list.innerHTML = `<div class="empty-state">No bookings yet — once you book a service while signed in, it'll show up here.</div>`;
+    return;
+  }
+
+  document.getElementById('pageSub').textContent = `${data.length} booking${data.length===1?'':'s'}`;
+  list.innerHTML = data.map(b => {
+    const statusClass = 'status-' + b.status.replace(/\s+/g,'_');
+    return `
+      <div class="booking-card">
+        <div class="bk-top">
+          <div>
+            <div class="bk-ref">${b.booking_ref}</div>
+            <div class="bk-service">${b.service_name} — ${b.service_type}</div>
+            <div class="bk-meta">${b.booking_date} · ${b.booking_time}</div>
+          </div>
+          <span class="status-badge ${statusClass}">${b.status}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ---------- On load: if already signed in, skip straight to dashboard ---------- */
+(async ()=>{
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) enterDashboard();
+})();
+</script>
+</body>
+</html>
