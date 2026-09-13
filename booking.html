@@ -513,7 +513,7 @@ function r6(c){
   input.addEventListener('change', e=>{
     Array.from(e.target.files).forEach(file=>{
       if(file.size > 10*1024*1024){ alert(`${file.name} is over 10MB and was skipped.`); return; }
-      state.files.push({name:file.name, size:file.size});
+      state.files.push(file);
     });
     renderFileList();
   });
@@ -628,9 +628,11 @@ async function submitBooking(){
 
   const svc = SERVICES.find(s=>s.id===state.service);
   const ref = 'EXC-' + new Date().getFullYear() + '-' + String(Math.floor(10000+Math.random()*90000)).slice(0,5);
+  const bookingId_internal = crypto.randomUUID();
   const { data: { session } } = await sb.auth.getSession();
 
   const payload = {
+    id: bookingId_internal,
     booking_ref: ref,
     service_id: state.service,
     service_name: svc.name,
@@ -660,6 +662,25 @@ async function submitBooking(){
     return;
   }
 
+  // Booking saved — now upload any attached files and record them
+  if(state.files.length > 0){
+    nextBtn.textContent = 'Uploading files…';
+    for(const file of state.files){
+      const path = `${bookingId_internal}/${Date.now()}-${file.name}`;
+      const { error: uploadErr } = await sb.storage.from('booking-files').upload(path, file);
+      if(uploadErr){
+        console.error('File upload failed for', file.name, uploadErr.message);
+        continue; // don't block the whole booking over one failed file
+      }
+      await sb.from('uploaded_files').insert({
+        booking_id: bookingId_internal,
+        file_name: file.name,
+        file_path: path,
+        file_size: file.size
+      });
+    }
+  }
+
   bookingId = ref;
   submitted = true;
   render();
@@ -669,4 +690,4 @@ loadServices();
 render();
 </script>
 </body>
-</html>
+</html>   
